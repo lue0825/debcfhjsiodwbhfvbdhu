@@ -89,7 +89,6 @@ async def on_ready():
 		print(e)
 
 @bot.slash_command(name="통조림충전", description="계정에 통조림 충전")
-@app_commands.describe(게임버전 = "예) 12.9", 이어하기코드 = "예) a5a262fe3", 인증번호 = "예) 4836", 충전할통조림갯수 = "예) 40000")
 async def hello(interaction: nextcord.Interaction,게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
     if interaction.channel.id == 1194836743757766758:
         if interaction.user.id in user_dict and time.time() - user_dict[interaction.user.id] < cooltime:
