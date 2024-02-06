@@ -8,17 +8,29 @@ import urllib.parse
 import json
 import string
 import io
-import discord
+import nextcord, asyncio
+from nextcord.ext import commands
+import asyncio
+import random
+from dkdrlahel import *
+import time
+import re
+from nextcord import SlashOption
+import ast
+import os
+import datetime
+import io
+import traceback
+import json
+import requests
+from nextcord import User
 import time
 import json,pytz
-from discord import app_commands
-import zlib
-from discord.ext import commands
 cooltime = 86400
 user_dict = {}
-bot = commands.Bot(command_prefix="!", intents = discord.Intents.all())
+bot = commands.Bot(command_prefix="!", intents = nextcord.Intents.all())
 admin_ids = [1192744598599114804]
-TOKEN = os.environ["TOKEN"]
+TOKEN = os.environ['TOKEN']
 edit_log_channel = 1194836774736896020
 review_channel = 1192749520803606587
 user_dict = {}
@@ -77,9 +89,9 @@ async def on_ready():
 	except Exception as e:
 		print(e)
 
-@bot.tree.command(name="catfood", description="계정에 통조림 충전")
+@bot.slash_command(name="통조림충전", description="계정에 통조림 충전")
 @app_commands.describe(게임버전 = "예) 12.9", 이어하기코드 = "예) a5a262fe3", 인증번호 = "예) 4836", 충전할통조림갯수 = "예) 40000")
-async def hello(interaction: discord.Interaction,게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
+async def hello(interaction: nextcord.Interaction,게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
     if interaction.channel.id == 1194836743757766758:
         if interaction.user.id in user_dict and time.time() - user_dict[interaction.user.id] < cooltime:
             cool_time = round(user_dict[interaction.user.id] + cooltime - time.time())
@@ -89,20 +101,20 @@ async def hello(interaction: discord.Interaction,게임버전: str, 이어하기
             await interaction.response.send_message(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
             result = await main(게임버전, 이어하기코드, 인증번호, 충전할통조림갯수)
             if result == False:
-                embed = discord.Embed(title="오류발생", color=0xfffffe)
+                embed = nextcord.Embed(title="오류발생", color=0xfffffe)
                 embed.add_field(name="",value=f"해당 계정을 찾을 수 없습니다.",inline=False)
                 await interaction.user.send(embed=embed)
                 return
             else:
                 user_dict[interaction.user.id] = time.time()
-                embedVar = discord.Embed(title="통조림 충전 성공", color=0xfffffe)
+                embedVar = nextcord.Embed(title="통조림 충전 성공", color=0xfffffe)
                 embedVar.add_field(name="", value=f"{interaction.user.name}님의 계정에 통조림 {충전할통조림갯수}개 충전을 성공했습니다.", inline=False)
                 embedVar.add_field(name="", value=f"이어하기코드 : **{result[0]}**\n인증번호 : **{result[1]}**", inline=False)
                 embedVar.add_field(name="", value=f"NITY MALL을 이용해주셔서 감사합니다.\n* 구매후기 : <#{review_channel}>", inline=False)
                 embedVar.set_footer(text='\u200b',icon_url="https://cdn.discordapp.com/avatars/1192744598599114804/3e4763d9d205f0deb068df6afd01c4f1.png")
                 embedVar.timestamp = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
                 await interaction.user.send(embed=embedVar)
-                embedVar = discord.Embed(title="통조림 충전", color=0xfffffe)
+                embedVar = nextcord.Embed(title="통조림 충전", color=0xfffffe)
                 embedVar.add_field(name="",value=f"{interaction.user.name}님 통조림 {충전할통조림갯수}개 충전 성공했습니다.",inline=False)
                 e_channel = bot.get_channel(edit_log_channel)
                 await e_channel.send(embed=embedVar)
