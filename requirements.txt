@@ -1,4 +1,4 @@
 dkdrlahel2
 battle-cats-save-editor
-discord
+nextcord
 pytz
