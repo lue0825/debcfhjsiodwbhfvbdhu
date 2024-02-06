@@ -12,7 +12,6 @@ import nextcord, asyncio
 from nextcord.ext import commands
 import asyncio
 import random
-from dkdrlahel import *
 import time
 import re
 from nextcord import SlashOption
