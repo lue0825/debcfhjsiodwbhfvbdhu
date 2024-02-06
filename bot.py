@@ -18,7 +18,7 @@ cooltime = 86400
 user_dict = {}
 bot = commands.Bot(command_prefix="!", intents = discord.Intents.all())
 admin_ids = [1192744598599114804]
-TOKEN = os.environ.get["TOKEN"]
+TOKEN = os.environ.get(TOKEN)
 edit_log_channel = 1194836774736896020
 review_channel = 1192749520803606587
 user_dict = {}
