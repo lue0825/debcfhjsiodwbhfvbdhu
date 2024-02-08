@@ -2,3 +2,4 @@ dkdrlahel2
 battle-cats-save-editor
 nextcord
 pytz
+flask[async]
