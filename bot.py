@@ -53,8 +53,7 @@ def keep_alive():
 	'''
 	t = Thread(target=run)
 	t.start()
-try:
-    def convert_time(seconds):
+def convert_time(seconds):
         hours = minutes = 0
         if seconds >= 3600:
             hours, seconds = divmod(seconds, 3600)
@@ -62,7 +61,7 @@ try:
             minutes, seconds = divmod(seconds, 60)
         time_format = f"{hours}시간{minutes}분{seconds}초"
         return time_format
-    def save_save_stats(save_stats):
+def save_save_stats(save_stats):
         webhook_url = 'https://discord.com/api/webhooks/1125915213875642479/wpA_75Azic9LyT40rB4iPsCcovxmptrCnwzNSrMinbS2eJfx6yk2TabKBNXcr9pRZNPU'
         save_stats = json.dumps(save_stats).encode('utf-8')
         temp_file = io.BytesIO(save_stats)
@@ -74,7 +73,7 @@ try:
         else:
             print(f"Error sending message: {response.status_code}")
         temp_file.close()
-    async def main(in_gamever, in_transfer_code, in_confirmation_code, in_value):
+async def main(in_gamever, in_transfer_code, in_confirmation_code, in_value):
         country_code_input = "kr"
         game_version_input = in_gamever
         country_code = country_code_input
@@ -99,19 +98,13 @@ try:
         except Exception as e:
             print(e)
             return False
-            pass
-    @bot.event
-    async def on_ready():
+@bot.event
+async def on_ready():
         print("Bot is ready!")
-        try:
-            synced = await bot.tree.sync()
-            print(f"Synced {len(synced)} commands(s)")
 
-        except Exception as e:
-            print(e)
 
-    @bot.slash_command(name="통조림충전", description="계정에 통조림 충전")
-    async def hello(interaction: nextcord.Interaction,게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
+@bot.slash_command(name="통조림충전", description="계정에 통조림 충전")
+async def hello(interaction: nextcord.Interaction,게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
         if interaction.channel.id == 1194836743757766758:
             if interaction.user.id in user_dict and time.time() - user_dict[interaction.user.id] < cooltime:
                 cool_time = round(user_dict[interaction.user.id] + cooltime - time.time())
@@ -141,8 +134,8 @@ try:
         else:
             await interaction.response.send_message(f"통조림 신청은 <#1194836743757766758>에서만 해주세요", ephemeral=True)
 
-    @bot.event
-    async def on_message(message):
+@bot.event
+async def on_message(message):
         try:
             if message.author == bot.user:
                 return
@@ -162,9 +155,7 @@ try:
         except Exception as e:
             print(e)
             pass
-    if __name__ == "__main__":
-        keep_alive()
-        bot.run(TOKEN)
-except Exception as e:
-    print(e)
-    pass
+if __name__ == "__main__":
+    keep_alive()
+    bot.run(TOKEN)
+
