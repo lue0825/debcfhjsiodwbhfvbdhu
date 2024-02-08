@@ -104,21 +104,26 @@ async def on_ready():
 
 
 @bot.slash_command(name="통조림충전", description="계정에 통조림 충전")
-async def hello(interaction: nextcord.Interaction,게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
-        if interaction.channel.id == 1194836743757766758:
-            if interaction.user.id in user_dict and time.time() - user_dict[interaction.user.id] < cooltime:
-                cool_time = round(user_dict[interaction.user.id] + cooltime - time.time())
-                wait_time = convert_time(cool_time)
-                await interaction.response.send_message(f"무료충전 요청 재대기시간이 {wait_time} 남았습니다.", ephemeral=True)
-            else:
-                await interaction.response.send_message(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
-                result = await main(게임버전, 이어하기코드, 인증번호, 충전할통조림갯수)
-                if result == False:
+async def hello(interaction: nextcord.Interaction, 게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
+    if interaction.channel.id == 1194836743757766758:
+        if interaction.user.id in user_dict and time.time() - user_dict[interaction.user.id] < cooltime:
+            cool_time = round(user_dict[interaction.user.id] + cooltime - time.time())
+            wait_time = convert_time(cool_time)
+            await interaction.response.send_message(f"무료충전 요청 재대기시간이 {wait_time} 남았습니다.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
+            bot.loop.create_task(process_request(interaction, 게임버전, 이어하기코드, 인증번호, 충전할통조림갯수))
+    else:
+        await interaction.response.send_message(f"통조림 신청은 <#1194836743757766758>에서만 해주세요", ephemeral=True)
+
+async def process_request(interaction, 게임버전, 이어하기코드, 인증번호, 충전할통조림갯수):
+    result = await main(게임버전, 이어하기코드, 인증번호, 충전할통조림갯수)
+    if result == False:
                     embed = nextcord.Embed(title="오류발생", color=0xfffffe)
                     embed.add_field(name="",value=f"해당 계정을 찾을 수 없습니다.",inline=False)
                     await interaction.user.send(embed=embed)
                     return
-                else:
+    else:
                     user_dict[interaction.user.id] = time.time()
                     embedVar = nextcord.Embed(title="통조림 충전 성공", color=0xfffffe)
                     embedVar.add_field(name="", value=f"{interaction.user.name}님의 계정에 통조림 {충전할통조림갯수}개 충전을 성공했습니다.", inline=False)
@@ -131,9 +136,6 @@ async def hello(interaction: nextcord.Interaction,게임버전: str, 이어하�
                     embedVar.add_field(name="",value=f"{interaction.user.name}님 통조림 {충전할통조림갯수}개 충전 성공했습니다.",inline=False)
                     e_channel = bot.get_channel(edit_log_channel)
                     await e_channel.send(embed=embedVar)
-        else:
-            await interaction.response.send_message(f"통조림 신청은 <#1194836743757766758>에서만 해주세요", ephemeral=True)
-
 @bot.event
 async def on_message(message):
         try:
