@@ -3,6 +3,8 @@ import random, requests, datetime, sys
 import os
 from typing import Any
 import os
+from flask import Flask
+from threading import Thread
 import http.client
 import urllib.parse
 import json
@@ -33,6 +35,24 @@ TOKEN = os.environ['TOKEN']
 edit_log_channel = 1194836774736896020
 review_channel = 1192749520803606587
 user_dict = {}
+app = Flask('')
+
+@app.route('/')
+def home():
+	return 'Im in!'
+
+def run():
+  app.run(
+		host='0.0.0.0',
+		port=random.randint(2000,9000)
+	)
+
+def keep_alive():
+	'''
+	Creates and starts new thread that runs the function run.
+	'''
+	t = Thread(target=run)
+	t.start()
 try:
     def convert_time(seconds):
         hours = minutes = 0
@@ -134,7 +154,7 @@ try:
                     try:
                         userid = int(message.content.split(" ")[1])
                     except:
-                        await message.channel.send("올바른 생성 개수를 입력해주세요.")
+                        await message.channel.send("올바른 아이디를 입력해주세요.")
                         return
                     else:
                         user_dict[userid] = 0
@@ -143,6 +163,7 @@ try:
             print(e)
             pass
     if __name__ == "__main__":
+        keep_alive()
         bot.run(TOKEN)
 except Exception as e:
     print(e)
