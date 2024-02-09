@@ -106,7 +106,7 @@ async def callback(interaction: nextcord.Interaction,
             except Exception:
                  await interaction.response.send_message(f"충전할 통조림 갯수는 숫자만 입력해주세요", ephemeral=True)
             else:
-                await interaction.response.send_message(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
+                await interaction.followup.send(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
                 result = await main(게임버전, 이어하기코드, 인증번호, 충전할통조림갯수)
                 if result == False:
                     embed = nextcord.Embed(title="오류발생", color=0xfffffe)
