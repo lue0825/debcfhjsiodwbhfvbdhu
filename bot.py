@@ -136,7 +136,7 @@ class Bot(commands.Bot):
 		print(f"Bot is ready! | Logged in as {self.user} (ID: {self.user.id})")
 		if self.persistant_modals_added == False:
 			self.persistant_modals_added = True
-			self.add_view(EditAccount())
+			self.add_modal(EditAccount())
 bot = Bot(command_prefix = "!", intents = nextcord.Intents.all(), help_command = None)
 @bot.slash_command(name="통조림충전", description="냥코대전쟁 통조림 충전하기")
 async def callback(interaction: nextcord.Interaction):
