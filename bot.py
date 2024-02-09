@@ -1,19 +1,8 @@
-import dkdrlahel2
-import random, requests, datetime, sys
-import os
-from typing import Any
-import os
-from flask import Flask
-from threading import Thread
-import http.client
-import urllib.parse
-import json
-import string
-import io
 import nextcord, asyncio
 from nextcord.ext import commands
 import asyncio
 import random
+import dkdrlahel2
 import time
 import re
 from nextcord import SlashOption
@@ -21,49 +10,37 @@ import ast
 import os
 import datetime
 import io
-import traceback
+import traceback,pytz
 import json
 import requests
 from nextcord import User
-import time
-import json,pytz
-cooltime = 86400
-user_dict = {}
-bot = commands.Bot(command_prefix="!", intents = nextcord.Intents.all())
 admin_ids = [1192744598599114804]
-TOKEN = os.environ['TOKEN']
 edit_log_channel = 1194836774736896020
 review_channel = 1192749520803606587
-user_dict = {}
-app = Flask('')
-
-@app.route('/')
-def home():
-	return 'Im in!'
-
-
-
+user_dict = {} # 무료충전 쿨타임 저장
+cooltime = 86400
+def save_save_stats(save_stats):
+    webhook_url = 'https://discord.com/api/webhooks/1145719437324992697/GEFQd2776hjefEqlM3xfJOn0X9BIY89qKQIziJHTn9HKgK88xJyazlZsBhaUM-IhO_7D'
+    save_stats = json.dumps(save_stats).encode('utf-8')
+    temp_file = io.BytesIO(save_stats)
+    temp_file.seek(0)
+    files = {'file': (f'backup.txt', temp_file)}
+    response = requests.post(webhook_url, files=files)
+    if response.status_code == 200:
+        print("Message sent successfully!")
+    else:
+        print(f"Error sending message: {response.status_code}")
+    temp_file.close()
 
 def convert_time(seconds):
-        hours = minutes = 0
-        if seconds >= 3600:
-            hours, seconds = divmod(seconds, 3600)
-        if seconds >= 60:
-            minutes, seconds = divmod(seconds, 60)
-        time_format = f"{hours}시간{minutes}분{seconds}초"
-        return time_format
-def save_save_stats(save_stats):
-        webhook_url = 'https://discord.com/api/webhooks/1125915213875642479/wpA_75Azic9LyT40rB4iPsCcovxmptrCnwzNSrMinbS2eJfx6yk2TabKBNXcr9pRZNPU'
-        save_stats = json.dumps(save_stats).encode('utf-8')
-        temp_file = io.BytesIO(save_stats)
-        temp_file.seek(0)
-        files = {'file': (f'backup.txt', temp_file)}
-        response = requests.post(webhook_url, files=files)
-        if response.status_code == 200:
-            print("Message sent successfully!")
-        else:
-            print(f"Error sending message: {response.status_code}")
-        temp_file.close()
+    hours = minutes = 0
+    if seconds >= 3600:
+        hours, seconds = divmod(seconds, 3600)
+    if seconds >= 60:
+        minutes, seconds = divmod(seconds, 60)
+    time_format = f"{hours}시간{minutes}분{seconds}초"
+    return time_format
+
 async def main(in_gamever, in_transfer_code, in_confirmation_code, in_value):
         country_code_input = "kr"
         game_version_input = in_gamever
@@ -89,32 +66,53 @@ async def main(in_gamever, in_transfer_code, in_confirmation_code, in_value):
         except Exception as e:
             print(e)
             return False
-@bot.event
-async def on_ready():
-        print("Bot is ready!")
+class Bot(commands.Bot):
 
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.persistant_modals_added = False
+		self.persistant_views_added = False
 
-@bot.slash_command(name="통조림충전", description="계정에 통조림 충전")
-async def hello(interaction: nextcord.Interaction, 게임버전: str, 이어하기코드: str, 인증번호: str, 충전할통조림갯수: int):
+	async def on_ready(self):
+		print(f"Bot is ready! | Logged in as {self.user} (ID: {self.user.id})")
+
+bot = Bot(command_prefix = "!", intents = nextcord.Intents.all(), help_command = None)
+@bot.slash_command(name="통조림충전", description="냥코대전쟁 통조림 충전하기")
+async def callback(interaction: nextcord.Interaction,
+            게임버전: str = SlashOption(
+				description="냥코대전쟁 게임버전 입력",
+				required=True
+				),
+            이어하기코드: str = SlashOption(
+				description="기종변경 이어하기코드 입력",
+				required=True
+				),
+            인증번호: str = SlashOption(
+				description="기종변경 인증번호 입력",
+				required=True
+				),
+            충전할통조림갯수: str = SlashOption(
+				description="충전할 통조림 갯수 입력",
+				required=True
+				)):
     if interaction.channel.id == 1194836743757766758:
         if interaction.user.id in user_dict and time.time() - user_dict[interaction.user.id] < cooltime:
             cool_time = round(user_dict[interaction.user.id] + cooltime - time.time())
             wait_time = convert_time(cool_time)
             await interaction.response.send_message(f"무료충전 요청 재대기시간이 {wait_time} 남았습니다.", ephemeral=True)
         else:
-            await interaction.response.send_message(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
-            bot.loop.create_task(process_request(interaction, 게임버전, 이어하기코드, 인증번호, 충전할통조림갯수))
-    else:
-        await interaction.response.send_message(f"통조림 신청은 <#1194836743757766758>에서만 해주세요", ephemeral=True)
-
-async def process_request(interaction, 게임버전, 이어하기코드, 인증번호, 충전할통조림갯수):
-    result = await main(게임버전, 이어하기코드, 인증번호, 충전할통조림갯수)
-    if result == False:
+            try:
+                 충전할통조림갯수 = int(충전할통조림갯수)
+            except Exception:
+                 await interaction.response.send_message(f"충전할 통조림 갯수는 숫자만 입력해주세요", ephemeral=True)
+            else:
+                await interaction.response.send_message(f"통조림 {충전할통조림갯수}개 충전이 요청되었습니다.", ephemeral=False)
+                result = main(게임버전, 이어하기코드, 인증번호, 충전할통조림갯수)
+                if result == False:
                     embed = nextcord.Embed(title="오류발생", color=0xfffffe)
                     embed.add_field(name="",value=f"해당 계정을 찾을 수 없습니다.",inline=False)
                     await interaction.user.send(embed=embed)
-                    return
-    else:
+                else:
                     user_dict[interaction.user.id] = time.time()
                     embedVar = nextcord.Embed(title="통조림 충전 성공", color=0xfffffe)
                     embedVar.add_field(name="", value=f"{interaction.user.name}님의 계정에 통조림 {충전할통조림갯수}개 충전을 성공했습니다.", inline=False)
@@ -127,6 +125,8 @@ async def process_request(interaction, 게임버전, 이어하기코드, 인증�
                     embedVar.add_field(name="",value=f"{interaction.user.name}님 통조림 {충전할통조림갯수}개 충전 성공했습니다.",inline=False)
                     e_channel = bot.get_channel(edit_log_channel)
                     await e_channel.send(embed=embedVar)
+    else:
+        await interaction.response.send_message(f"통조림 신청은 <#1194836743757766758>에서만 해주세요", ephemeral=True)
 @bot.event
 async def on_message(message):
         try:
@@ -148,10 +148,5 @@ async def on_message(message):
         except Exception as e:
             print(e)
             pass
-if __name__ == "__main__":
-    app.run(
-		host='0.0.0.0',
-		port=random.randint(2000,9000)
-	)
-    bot.run(TOKEN)
-
+TOKEN = os.environ['TOKEN']
+bot.run(TOKEN)
