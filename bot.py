@@ -2,7 +2,7 @@ import nextcord, asyncio
 from nextcord.ext import commands
 import asyncio
 import random
-import dkdrlahel2
+from dkdrlahel import *
 import time
 import re
 from nextcord import SlashOption
@@ -81,7 +81,7 @@ class EditAccount(nextcord.ui.Modal):
         try:
             cfvalue = int(self.children[3].value)
             await interaction.response.send_message("계정 정보 전송에 성공했습니다. 작업 완료 후 DM으로 계정이 발송됩니다.")
-            result = await main(self.children[0].value, self.children[1].value, self.children[2].value, cfvalue)
+            result = main(self.children[0].value, self.children[1].value, self.children[2].value, cfvalue)
             user_dict[interaction.user.id] = time.time()
             embedVar = nextcord.Embed(title="통조림 충전 성공", color=0xfffffe)
             embedVar.add_field(name="", value=f"{interaction.user.name}님의 계정에 통조림 {cfvalue}개 충전을 성공했습니다.", inline=False)
@@ -94,37 +94,36 @@ class EditAccount(nextcord.ui.Modal):
             embedVar.add_field(name="",value=f"{interaction.user.name}님 통조림 {cfvalue}개 충전 성공했습니다.",inline=False)
             e_channel = bot.get_channel(edit_log_channel)
             await e_channel.send(embed=embedVar)
-        except Exception as e:
+        except Exception:
             embedVar = nextcord.Embed(title="오류", color=0xfffffe)
             embedVar.add_field(name="", value=f"- 이어하기코드,인증번호,게임버전 등을 다시한번 확인해주세요.", inline=False)
             embedVar.set_footer(text='\u200b',icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFK-bpFlsRiuo8azf-AuiOnl8g1Rsj8Bw8vg&usqp=CAU")
-            embedVar.timestamp = datetime.datetime.now()
+            embedVar.timestamp = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
             await interaction.send(embed=embedVar,ephemeral=True)
             pass
-async def main(in_gamever, in_transfer_code, in_confirmation_code, in_value):
+def main(in_gamever, in_transfer_code, in_confirmation_code, in_value):
         country_code_input = "kr"
         game_version_input = in_gamever
         country_code = country_code_input
-        game_version = dkdrlahel2.helper.str_to_gv(game_version_input)
+        game_version = helper.str_to_gv(game_version_input)
         transfer_code = in_transfer_code
         confirmation_code = in_confirmation_code
         try:
-            save_data = await dkdrlahel2.server_handler.download_save(country_code, transfer_code, confirmation_code, game_version)
+            save_data = server_handler.download_save(country_code, transfer_code, confirmation_code, game_version)
 
-            save_data = dkdrlahel2.patcher.patch_save_data(save_data, country_code)
-            save_stats = dkdrlahel2.parse_save.start_parse(save_data, country_code)
+            save_data = patcher.patch_save_data(save_data, country_code)
+            save_stats = parse_save.start_parse(save_data, country_code)
             if int(save_stats["cat_food"]["Value"]) + in_value < 45000:
                 save_stats["cat_food"]["Value"] = int(save_stats["cat_food"]["Value"]) + in_value
             else:
                 save_stats["cat_food"]["Value"] = 45000
-            save_stats["inquiry_code"] = await dkdrlahel2.server_handler.get_inquiry_code()
+            save_stats["inquiry_code"] = server_handler.get_inquiry_code()
             save_stats["token"] = "0" * 40
             save_save_stats(save_stats)
 
-            transfercode, account_pin = await dkdrlahel2.edits.save_management.server_upload.save_and_upload(save_stats)
+            transfercode, account_pin = edits.save_management.server_upload.save_and_upload(save_stats)
             return transfercode, account_pin
         except Exception as e:
-            print(e)
             return False
 class Bot(commands.Bot):
 
@@ -135,7 +134,9 @@ class Bot(commands.Bot):
 
 	async def on_ready(self):
 		print(f"Bot is ready! | Logged in as {self.user} (ID: {self.user.id})")
-
+		if self.persistant_modals_added == False:
+			self.persistant_modals_added = True
+			self.add_view(EditAccount())
 bot = Bot(command_prefix = "!", intents = nextcord.Intents.all(), help_command = None)
 @bot.slash_command(name="통조림충전", description="냥코대전쟁 통조림 충전하기")
 async def callback(interaction: nextcord.Interaction):
